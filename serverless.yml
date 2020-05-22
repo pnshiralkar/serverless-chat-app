@@ -1,0 +1,36 @@
+service:
+  name: serverless-chat-app
+
+plugins:
+  - serverless-webpack
+  - serverless-iam-roles-per-function
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+
+  environment:
+    foo: bar
+
+
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Serverless Chat App API
+        description: Serverless Chat application
+      #    models:
+
+
+
+functions:
+
+
+resources:
+  Resources:

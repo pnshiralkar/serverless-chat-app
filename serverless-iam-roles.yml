@@ -1,0 +1,47 @@
+dynamodbUpdateItem:
+  Effect: Allow
+  Action:
+    - dynamodb:UpdateItem
+  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+
+dynamodbGetItem:
+  Effect: Allow
+  Action:
+    - dynamodb:GetItem
+  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+
+dynamodbQuery:
+  Effect: Allow
+  Action:
+    - dynamodb:Query
+  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}/index/*
+
+dynamodbPutItem:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+
+dynamodbDeleteItem:
+  Effect: Allow
+  Action:
+    - dynamodb:DeleteItem
+  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+
+s3GetObject:
+  Effect: Allow
+  Action:
+    - s3:GetObject
+  Resource: arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*
+
+s3PutObject:
+  Effect: Allow
+  Action:
+    - s3:PutObject
+  Resource: arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*
+
+xrayPutSegments:
+  Effect: Allow
+  Action:
+    - xray:PutTraceSegments
+  Resource: '*'

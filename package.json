@@ -1,0 +1,25 @@
+{
+  "name": "serverless-chat-app",
+  "version": "1.0.0",
+  "description": "A chat application deployed on serverless environment in AWS",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.51",
+    "@types/jsonwebtoken": "^8.5.0",
+    "@types/node": "^14.0.5",
+    "aws-sdk": "^2.682.0",
+    "serverless-aws-documentation": "^1.1.0",
+    "serverless-iam-roles-per-function": "^2.0.2",
+    "serverless-reqvalidator-plugin": "^1.0.3",
+    "serverless-webpack": "^5.3.2",
+    "ts-loader": "^7.0.4",
+    "typescript": "^3.9.3",
+    "webpack": "^4.43.0"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^1.8.0",
+    "uuid": "^8.1.0"
+  }
+}

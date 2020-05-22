@@ -1,0 +1,11 @@
+# Webstorm directory
+.idea
+
+# Node modules
+node_modules
+
+# Serverless directories
+.serverless
+
+# Webpack directories
+.webpack
