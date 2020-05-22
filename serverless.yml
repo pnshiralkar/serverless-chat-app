@@ -14,23 +14,102 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
+  tracing:
+    lambda: true
+    apiGateway: true
+
   environment:
-    foo: bar
+    TABLE_USERS: usersTable
+    TABLE_USERS_GSI: socket
+    TABLE_MSGS: messagesTable
+    TABLE_MSGS_GSI: recipient
 
 
-custom:
-  documentation:
-    api:
-      info:
-        version: v1.0.0
-        title: Serverless Chat App API
-        description: Serverless Chat application
+#custom:
+#  documentation:
+#    api:
+#      info:
+#        version: v1.0.0
+#        title: Serverless Chat App API
+#        description: Serverless Chat application
       #    models:
 
 
 
 functions:
-
+  Auth:
+    handler: src/lambda/auth/auth0Authorizer.handler
 
 resources:
   Resources:
+
+    #    DynamoDB Tables
+
+    UserDataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TABLE_USERS}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+          - AttributeName: socketConnectionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TABLE_USERS_GSI}
+            KeySchema:
+              - AttributeName: socketConnectionId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+
+    MessagesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TABLE_MSGS}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: msgId
+            AttributeType: S
+          - AttributeName: from
+            AttributeType: S
+          - AttributeName: to
+            AttributeType: S
+        KeySchema:
+          - AttributeName: from
+            KeyType: HASH
+          - AttributeName: msgId
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TABLE_MSGS_GSI}
+            KeySchema:
+              - AttributeName: to
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+
+    #    Others
+
+#    RequestBodyValidator:
+#      Type: AWS::ApiGateway::RequestValidator
+#      Properties:
+#        Name: 'request-body-validator'
+#        RestApiId:
+#          Ref: ApiGatewayRestApi
+#        ValidateRequestBody: true
+#        ValidateRequestParameters: false
+#
+#    GatewayResponseDefault4XX:
+#      Type: AWS::ApiGateway::GatewayResponse
+#      Properties:
+#        ResponseParameters:
+#          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+#          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+#          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+#        ResponseType: DEFAULT_4XX
+#        RestApiId:
+#          Ref: ApiGatewayRestApi
