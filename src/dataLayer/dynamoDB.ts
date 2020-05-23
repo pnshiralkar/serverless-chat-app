@@ -11,6 +11,19 @@ export const create = async (table, item)=>{
     }).promise()
 }
 
+export const queryMsgs = async (table, chatName): Promise<object[]> => {
+    const result = await docClient.query({
+        TableName: table,
+        IndexName: process.env.TABLE_MSGS_GSI,
+        KeyConditionExpression: 'chatName = :cn',
+        ExpressionAttributeValues: {
+            ':cn': chatName
+        },
+        ScanIndexForward: true
+    }).promise()
+    return result.Items
+}
+
 export const query = async (table, user): Promise<object[]> => {
     const result = await docClient.query({
         TableName: table,

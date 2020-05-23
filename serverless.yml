@@ -22,7 +22,7 @@ provider:
     TABLE_USERS: UsersTable
     TABLE_USERS_GSI: socket
     TABLE_USERS_GSI2: username
-    TABLE_MSGS: messagesTable
+    TABLE_MSGS: MessagesTable
     TABLE_MSGS_GSI: recipient
 
 
@@ -72,6 +72,8 @@ functions:
 
   CreateMessage:
     handler: src/lambda/http/createMsg.handler
+    environment:
+      API_ENDPOINT: "l3t0mzaam8.execute-api.us-east-1.amazonaws.com/dev"
     events:
       - http:
           method: post
@@ -82,6 +84,19 @@ functions:
       - ${file(serverless-iam-roles.yml):dynamodbQuery}
       - ${file(serverless-iam-roles.yml):dynamodbPutItem}
       - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+      - ${file(serverless-iam-roles.yml):executeApiManageConn}
+
+  GetMessagesInChat:
+    handler: src/lambda/http/getMessagesInChat.handler
+    events:
+      - http:
+          method: get
+          path: chats/{withId}
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbQuery}
       - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
   # Websocket Functions
@@ -110,6 +125,21 @@ functions:
       - ${file(serverless-iam-roles.yml):dynamodbQuery}
       - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
       - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
+  SendMessage:
+    handler: src/lambda/websocket/sendMessage.handler
+    environment:
+      API_ENDPOINT: "l3t0mzaam8.execute-api.us-east-1.amazonaws.com/dev"
+    events:
+      - websocket:
+          route: sendMsg
+          cors: true
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbQuery}
+      - ${file(serverless-iam-roles.yml):dynamodbPutItem}
+      - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+      - ${file(serverless-iam-roles.yml):executeApiManageConn}
 
 
 resources:
@@ -155,20 +185,20 @@ resources:
         AttributeDefinitions:
           - AttributeName: msgId
             AttributeType: S
-          - AttributeName: from
+          - AttributeName: chatName
             AttributeType: S
-          - AttributeName: to
+          - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: from
-            KeyType: HASH
           - AttributeName: msgId
-            KeyType: RANGE
+            KeyType: HASH
         GlobalSecondaryIndexes:
           - IndexName: ${self:provider.environment.TABLE_MSGS_GSI}
             KeySchema:
-              - AttributeName: to
+              - AttributeName: chatName
                 KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
             Projection:
               ProjectionType: ALL
 

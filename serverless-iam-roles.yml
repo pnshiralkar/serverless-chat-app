@@ -52,6 +52,13 @@ s3PutObject:
     - s3:PutObject
   Resource: arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*
 
+executeApiManageConn:
+  Effect: Allow
+  Action:
+    - execute-api:ManageConnections
+  Resource:
+    - arn:aws:execute-api:us-east-1:*:l3t0mzaam8/dev/*
+
 xrayPutSegments:
   Effect: Allow
   Action:
