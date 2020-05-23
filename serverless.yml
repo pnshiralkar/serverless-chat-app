@@ -19,26 +19,98 @@ provider:
     apiGateway: true
 
   environment:
-    TABLE_USERS: usersTable
+    TABLE_USERS: UsersTable
     TABLE_USERS_GSI: socket
+    TABLE_USERS_GSI2: username
     TABLE_MSGS: messagesTable
     TABLE_MSGS_GSI: recipient
 
 
-#custom:
-#  documentation:
-#    api:
-#      info:
-#        version: v1.0.0
-#        title: Serverless Chat App API
-#        description: Serverless Chat application
-      #    models:
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Serverless Chat App API
+        description: Serverless Chat application
+    #    models:
 
 
 
 functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
+
+  WebsocketAuth:
+    handler: src/lambda/auth/auth0AuthorizerWebsocket.handler
+
+  # HTTP Functions
+
+  GetProfile:
+    handler: src/lambda/http/getProfile.handler
+    events:
+      - http:
+          method: get
+          path: profile
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbQuery}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
+  CreateProfile:
+    handler: src/lambda/http/createProfile.handler
+    events:
+      - http:
+          method: post
+          path: profile
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbPutItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
+  CreateMessage:
+    handler: src/lambda/http/createMsg.handler
+    events:
+      - http:
+          method: post
+          path: message
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbQuery}
+      - ${file(serverless-iam-roles.yml):dynamodbPutItem}
+      - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
+  # Websocket Functions
+
+  SocketConnect:
+    handler: src/lambda/websocket/connect.handler
+    events:
+      - websocket:
+          route: $connect
+          cors: true
+          authorizer:
+            name: WebsocketAuth
+            identitySource:
+              - route.request.querystring.Authorization
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
+  SocketDisconnect:
+    handler: src/lambda/websocket/disconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+          cors: true
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbQuery}
+      - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
 
 resources:
   Resources:
@@ -51,17 +123,25 @@ resources:
         TableName: ${self:provider.environment.TABLE_USERS}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
           - AttributeName: username
             AttributeType: S
           - AttributeName: socketConnectionId
             AttributeType: S
         KeySchema:
-          - AttributeName: username
+          - AttributeName: userId
             KeyType: HASH
         GlobalSecondaryIndexes:
           - IndexName: ${self:provider.environment.TABLE_USERS_GSI}
             KeySchema:
               - AttributeName: socketConnectionId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+          - IndexName: ${self:provider.environment.TABLE_USERS_GSI2}
+            KeySchema:
+              - AttributeName: username
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
@@ -94,22 +174,22 @@ resources:
 
     #    Others
 
-#    RequestBodyValidator:
-#      Type: AWS::ApiGateway::RequestValidator
-#      Properties:
-#        Name: 'request-body-validator'
-#        RestApiId:
-#          Ref: ApiGatewayRestApi
-#        ValidateRequestBody: true
-#        ValidateRequestParameters: false
-#
-#    GatewayResponseDefault4XX:
-#      Type: AWS::ApiGateway::GatewayResponse
-#      Properties:
-#        ResponseParameters:
-#          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
-#          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-#          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
-#        ResponseType: DEFAULT_4XX
-#        RestApiId:
-#          Ref: ApiGatewayRestApi
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi

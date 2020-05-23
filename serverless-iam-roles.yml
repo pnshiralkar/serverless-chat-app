@@ -2,31 +2,43 @@ dynamodbUpdateItem:
   Effect: Allow
   Action:
     - dynamodb:UpdateItem
-  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+  Resource:
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_USERS}
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_MSGS}
 
 dynamodbGetItem:
   Effect: Allow
   Action:
     - dynamodb:GetItem
-  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+  Resource:
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_USERS}
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_MSGS}
 
 dynamodbQuery:
   Effect: Allow
   Action:
     - dynamodb:Query
-  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}/index/*
+  Resource:
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_USERS}/index/*
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_MSGS}/index/*
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_USERS}
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_MSGS}
 
 dynamodbPutItem:
   Effect: Allow
   Action:
     - dynamodb:PutItem
-  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+  Resource:
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_USERS}
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_MSGS}
 
 dynamodbDeleteItem:
   Effect: Allow
   Action:
     - dynamodb:DeleteItem
-  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODO_TABLE}
+  Resource:
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_USERS}
+    - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TABLE_MSGS}
 
 s3GetObject:
   Effect: Allow
