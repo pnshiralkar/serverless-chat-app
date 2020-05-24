@@ -133,6 +133,25 @@ export const updateChats = async (table, userId, newChats): Promise<object> =>{
     return result.Attributes
 }
 
+export const updateSeen = async (table, userId, chatName): Promise<object> =>{
+    const result = await docClient.update({
+        TableName: table,
+        Key: {
+            "userId": "" + userId,
+        },
+        UpdateExpression: 'set chats.#cn.unreadCount = :cnt',
+        ExpressionAttributeNames: {
+            '#cn': chatName
+        },
+        ExpressionAttributeValues: {
+            ':cnt': 0,
+        },
+        ReturnValues: "UPDATED_NEW"
+    }).promise()
+
+    return result.Attributes
+}
+
 export const del = async (table, userId, todoId): Promise<void> => {
     await docClient.delete({
         TableName: table,

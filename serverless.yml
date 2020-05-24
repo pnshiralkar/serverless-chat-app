@@ -141,6 +141,19 @@ functions:
       - ${file(serverless-iam-roles.yml):xrayPutSegments}
       - ${file(serverless-iam-roles.yml):executeApiManageConn}
 
+  SeenMessage:
+    handler: src/lambda/websocket/seenMessage.handler
+    environment:
+      API_ENDPOINT: "l3t0mzaam8.execute-api.us-east-1.amazonaws.com/dev"
+    events:
+      - websocket:
+          route: seenMsg
+          cors: true
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbQuery}
+      - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
 
 resources:
   Resources:
