@@ -1,17 +1,17 @@
 import {APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult} from "aws-lambda";
-import createMsg from "../../logic/createMsg";
+import getMediaUploadUrl from "../../logic/getMediaUploadUrl";
 
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const userId = event.requestContext.authorizer.principalId
+    const filename = event.pathParameters.filename
 
-    const result = await createMsg(userId, JSON.parse(event.body).to, 'text', JSON.parse(event.body).msg, null, '0')
+    const res = await getMediaUploadUrl(filename)
 
     return {
-        statusCode: 201,
+        statusCode: 200,
         headers: {
             'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify(result)
+        body: JSON.stringify(res)
     }
 }

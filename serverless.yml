@@ -7,6 +7,7 @@ plugins:
   - serverless-reqvalidator-plugin
   - serverless-aws-documentation
 
+
 provider:
   name: aws
   runtime: nodejs12.x
@@ -24,6 +25,7 @@ provider:
     TABLE_USERS_GSI2: username
     TABLE_MSGS: MessagesTable
     TABLE_MSGS_GSI: recipient
+    BUCKET_NAME: serverless-chat-app-storage-bucket
 
 
 custom:
@@ -97,6 +99,18 @@ functions:
           authorizer: Auth
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbQuery}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
+
+  GetMediaUploadUrl:
+    handler: src/lambda/http/getMediaUploadUrl.handler
+    events:
+      - http:
+          method: get
+          path: media_upload_url/{filename}
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):s3PutObject}
       - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
   # Websocket Functions
@@ -215,7 +229,60 @@ resources:
             Projection:
               ProjectionType: ALL
 
+    # S3 Buckets
+
+    StorageBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.BUCKET_NAME}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - HEAD
+              MaxAge: 3000
+
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: MyPolicy
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action: 's3:GetObject'
+              Resource: 'arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*'
+        Bucket: !Ref StorageBucket
+
     #    Others
+
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: ApiGatewayAuthorizer
+        IdentitySource: method.request.header.Authorization
+        Type: TOKEN
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        AuthorizerUri:
+          Fn::Join:
+            - ''
+            - - 'arn:aws:apigateway:'
+              - !Ref AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - !GetAtt AuthLambdaFunction.Arn
+              - '/invocations'
+
+
 
     RequestBodyValidator:
       Type: AWS::ApiGateway::RequestValidator

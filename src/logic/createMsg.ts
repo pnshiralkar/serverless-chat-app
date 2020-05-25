@@ -1,8 +1,9 @@
 import {create, query, queryByUsername, updateChats} from "../dataLayer/dynamoDB";
 import * as uuid from 'uuid'
 import {notify} from "../dataLayer/websockets";
+import {getDownloadUrl} from "../dataLayer/s3";
 
-export default async (userId: string, to: string, message: string, connId: string): Promise<object> => {
+export default async (userId: string, to: string, type: string, message: string, path: any, connId: string): Promise<object> => {
     const user = await query(process.env.TABLE_USERS, userId);
     const toUser = await queryByUsername(process.env.TABLE_USERS, to);
     const chatsFrom = user[0]['chats']
@@ -15,7 +16,11 @@ export default async (userId: string, to: string, message: string, connId: strin
     else
         chatName = toUser[0]['username'] + '-' + user[0]['username']
 
-    const item = {msgId, chatName, createdAt: "" + new Date(), from: user[0]["username"], to, message}
+    let item;
+    if(path)
+        item = {msgId, chatName, createdAt: "" + new Date(), from: user[0]["username"], to, type, message, path}
+    else
+        item = {msgId, chatName, createdAt: "" + new Date(), from: user[0]["username"], to, type, message}
 
     if (!chatsFrom[to])
         chatsFrom[to] = {user: {name: toUser[0]["name"]}, lastMsg: item, unreadCount: 0}
@@ -34,8 +39,11 @@ export default async (userId: string, to: string, message: string, connId: strin
 
     await create(process.env.TABLE_MSGS, item);
 
+    if(item.path)
+        item.photoUrl = await getDownloadUrl(process.env.BUCKET_NAME, item.path)
+
     await notify(toUser[0]["socketConnectionId"], {item})
-    await notify(connId, {item})
+    await notify(connId || user[0]['socketConnectionId'], {item})
 
     return item
 }

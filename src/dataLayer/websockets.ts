@@ -10,10 +10,12 @@ const apiDetails = {
 const apiGateway = new XAWS.ApiGatewayManagementApi(apiDetails);
 
 export const notify = async (connId: string, payload: object): Promise<void> => {
-    if(connId){
-        await apiGateway.postToConnection({
-            ConnectionId: connId,
-            Data: JSON.stringify(payload)
-        }).promise()
-    }
+    try {
+        if (connId) {
+            await apiGateway.postToConnection({
+                ConnectionId: connId,
+                Data: JSON.stringify(payload)
+            }).promise()
+        }
+    }catch (_) {}
 }
