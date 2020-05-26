@@ -32,10 +32,19 @@ custom:
   documentation:
     api:
       info:
-        version: v1.0.0
+        version: v1.0.2
         title: Serverless Chat App API
         description: Serverless Chat application
-    #    models:
+    models:
+      - name: CreateProfileModel
+        contentType: application/json
+        schema: ${file(models/CreateProfile.json)}
+      - name: CreateMessageModel
+        contentType: application/json
+        schema: ${file(models/CreateMessage.json)}
+      - name: SendMessageModelWebsocket
+        contentType: application/json
+        schema: ${file(models/SendMessageWebsocket.json)}
 
 
 
@@ -68,7 +77,14 @@ functions:
           path: profile
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Start a new chat
+            description: Start a new chat
+            requestModels:
+              'application/json': CreateProfileModel
     iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):dynamodbQuery}
       - ${file(serverless-iam-roles.yml):dynamodbPutItem}
       - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
@@ -82,7 +98,14 @@ functions:
           path: message
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Start a new chat
+            description: Start a new chat
+            requestModels:
+              'application/json': CreateMessageModel
     iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):s3GetObject}
       - ${file(serverless-iam-roles.yml):dynamodbQuery}
       - ${file(serverless-iam-roles.yml):dynamodbPutItem}
       - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
@@ -98,6 +121,7 @@ functions:
           cors: true
           authorizer: Auth
     iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):s3GetObject}
       - ${file(serverless-iam-roles.yml):dynamodbQuery}
       - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
@@ -148,7 +172,14 @@ functions:
       - websocket:
           route: sendMsg
           cors: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Send a message
+            description: Send a message
+            requestModels:
+              'application/json': SendMessageWebsocketModel
     iamRoleStatements:
+      - ${file(serverless-iam-roles.yml):s3GetObject}
       - ${file(serverless-iam-roles.yml):dynamodbQuery}
       - ${file(serverless-iam-roles.yml):dynamodbPutItem}
       - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
@@ -249,40 +280,7 @@ resources:
                 - HEAD
               MaxAge: 3000
 
-    BucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        PolicyDocument:
-          Id: MyPolicy
-          Version: "2012-10-17"
-          Statement:
-            - Sid: PublicReadForGetBucketObjects
-              Effect: Allow
-              Principal: '*'
-              Action: 's3:GetObject'
-              Resource: 'arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*'
-        Bucket: !Ref StorageBucket
-
     #    Others
-
-    ApiGatewayAuthorizer:
-      Type: AWS::ApiGateway::Authorizer
-      Properties:
-        Name: ApiGatewayAuthorizer
-        IdentitySource: method.request.header.Authorization
-        Type: TOKEN
-        RestApiId:
-          Ref: ApiGatewayRestApi
-        AuthorizerUri:
-          Fn::Join:
-            - ''
-            - - 'arn:aws:apigateway:'
-              - !Ref AWS::Region
-              - ':lambda:path/2015-03-31/functions/'
-              - !GetAtt AuthLambdaFunction.Arn
-              - '/invocations'
-
-
 
     RequestBodyValidator:
       Type: AWS::ApiGateway::RequestValidator

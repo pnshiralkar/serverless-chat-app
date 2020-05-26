@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "CreateMessage",
+  "type": "object",
+  "properties": {
+    "to": {
+      "type": "string"
+    },
+    "msg": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "to",
+    "msg"
+  ],
+  "additionalProperties": false
+}

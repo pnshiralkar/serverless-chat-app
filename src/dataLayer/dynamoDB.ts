@@ -63,28 +63,6 @@ export const queryByConnId = async (table, connId): Promise<object[]> => {
     return result.Items
 }
 
-export const update = async (table, userId, todoId, updatedTodo): Promise<object> =>{
-    const result = await docClient.update({
-        TableName: table,
-        Key: {
-            "ownerId": "" + userId,
-            "todoId": "" + todoId
-        },
-        UpdateExpression: 'set dueDate = :dueDate, #n = :name, done = :done',
-        ExpressionAttributeNames:{
-            '#n': 'name'
-        },
-        ExpressionAttributeValues: {
-            ':name': updatedTodo.name,
-            ':dueDate': updatedTodo.dueDate,
-            ':done': updatedTodo.done
-        },
-        ReturnValues: "UPDATED_NEW"
-    }).promise()
-
-    return result.Attributes
-}
-
 
 export const updateConn = async (table, userId, connId): Promise<object> =>{
     const result = await docClient.update({
@@ -150,28 +128,4 @@ export const updateSeen = async (table, userId, chatName): Promise<object> =>{
     }).promise()
 
     return result.Attributes
-}
-
-export const del = async (table, userId, todoId): Promise<void> => {
-    await docClient.delete({
-        TableName: table,
-        Key: {
-            "ownerId": "" + userId,
-            "todoId": "" + todoId
-        }
-    }).promise()
-}
-
-export const updateUrl = async (table, userId, todoId, url): Promise<void> => {
-    await docClient.update({
-        TableName: table,
-        Key: {
-            "ownerId": "" + userId,
-            "todoId": "" + todoId
-        },
-        UpdateExpression: 'set attachmentUrl = :url',
-        ExpressionAttributeValues: {
-            ':url': url,
-        }
-    }).promise()
 }
