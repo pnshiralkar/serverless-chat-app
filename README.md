@@ -12,4 +12,5 @@
 - Realtime message exchange using Websockets on AWS API Gateway.
 - Images shared are stored in S3 bucket and accessible only to the user who sent and recieved it using presigned URLs.
 - Codebase follows Hexagonal Architecture, i.e. Logic code is isolated from AWS specific code.
+- This app also uses Distributed Tracing using AWS X-ray
 - Frontend built in React is a SPA served using S3 and AWS Cloudfront CDN.
