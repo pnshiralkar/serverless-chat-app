@@ -8,7 +8,7 @@
     "@types/aws-lambda": "^8.10.51",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/node": "^14.0.5",
-    "aws-sdk": "^2.682.0",
+    "aws-sdk": "^2.814.0",
     "serverless-apigateway-service-proxy": "^1.8.0",
     "serverless-aws-documentation": "^1.1.0",
     "serverless-iam-roles-per-function": "^2.0.2",
